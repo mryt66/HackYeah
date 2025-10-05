@@ -1,0 +1,151 @@
+﻿<app-breadcrumbs [crumbs]="[
+  { label: 'System', link: ['/dashboard'] },
+  { label: 'Biblioteka' }
+]" />
+<!-- Header -->
+<div class="bg-white rounded-lg shadow mb-6">
+  <div class="px-6 py-4 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <h2 class="text-xl font-semibold text-gray-900">Biblioteka plików</h2>
+      <div class="flex items-center gap-2">
+        <button 
+          (click)="exportCSV()"
+          class="px-4 py-2 bg-white hover:bg-gray-100 border border-gray-300 rounded">
+          📤 Eksport CSV
+        </button>
+        <button 
+          (click)="openUploadModal()"
+          class="px-4 py-2 bg-uknf-primary hover:bg-uknf-primary-dark text-white rounded transition-colors">
+          <span class="flex items-center">
+            📁 Dodaj plik
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtry -->
+  <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <input 
+        type="text"
+        [(ngModel)]="filter.name"
+        (ngModelChange)="onSearchChange()"
+        class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary"
+        placeholder="Szukaj po nazwie...">
+      
+      <select 
+        [(ngModel)]="filter.category"
+        (ngModelChange)="applyFilters()"
+        class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary">
+        <option value="">Wszystkie kategorie</option>
+        <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+      </select>
+
+      <select 
+        [(ngModel)]="filter.status"
+        (ngModelChange)="applyFilters()"
+        class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary">
+        <option value="">Wszystkie statusy</option>
+        <option value="ACTIVE">Aktywne</option>
+        <option value="ARCHIVED">Archiwalne</option>
+      </select>
+
+      <button 
+        (click)="clearFilters()"
+        class="px-4 py-2 bg-white hover:bg-gray-100 border border-gray-300 rounded">
+        Wyczyść
+      </button>
+    </div>
+  </div>
+
+  <!-- Lista plików -->
+  <div class="p-6">
+    <div *ngIf="loading" class="text-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-uknf-primary mx-auto"></div>
+      <p class="mt-4 text-gray-500">Ładowanie...</p>
+    </div>
+
+    <div *ngIf="!loading && files.length === 0" class="text-center py-12">
+      <p class="text-gray-500">Brak plików do wyświetlenia</p>
+    </div>
+
+    <div *ngIf="!loading && files.length > 0" class="space-y-4">
+      <div *ngFor="let file of files" class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <div class="flex items-center space-x-3">
+              <h3 class="text-lg font-medium text-gray-900">
+                <a [routerLink]="['/library', file.id]" class="hover:underline">{{ file.name }}</a>
+              </h3>
+              <span [class]="libraryService.getStatusClass(file.status)" class="px-2 py-1 rounded text-xs">
+                {{ libraryService.getStatusLabel(file.status) }}
+              </span>
+              <span [class]="libraryService.getAccessLevelClass(file.accessLevel)" class="px-2 py-1 rounded text-xs">
+                {{ libraryService.getAccessLevelLabel(file.accessLevel) }}
+              </span>
+            </div>
+            <p class="mt-2 text-sm text-gray-600">{{ file.description }}</p>
+            <div class="mt-2 flex items-center space-x-4 text-xs text-gray-500">
+              <span>📂 {{ file.category }}</span>
+              <span>📄 {{ file.filename }} ({{ libraryService.formatFileSize(file.fileSize) }})</span>
+              <span>v{{ file.version }}</span>
+              <span>👤 {{ file.uploadedBy.name }}</span>
+              <span>📅 {{ formatDate(file.uploadedAt) }}</span>
+            </div>
+          </div>
+          <div class="flex space-x-2 ml-4">
+            <button 
+              (click)="downloadFile(file)"
+              class="p-2 text-uknf-primary hover:bg-uknf-primary hover:text-white rounded transition-colors"
+              title="Pobierz">
+              ⬇️
+            </button>
+            <button 
+              (click)="viewVersionHistory(file)"
+              class="p-2 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+              title="Historia wersji">
+              📜
+            </button>
+            <button 
+              *ngIf="isAdmin"
+              (click)="uploadNewVersion(file)"
+              class="p-2 text-green-600 hover:bg-green-100 rounded transition-colors"
+              title="Nowa wersja">
+              ⬆️
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paginacja -->
+    <div *ngIf="totalPages > 1" class="mt-6 flex items-center justify-between">
+      <p class="text-sm text-gray-600">
+        Strona {{ currentPage + 1 }} z {{ totalPages }} ({{ totalElements }} plików)
+      </p>
+      <div class="flex space-x-2">
+        <button 
+          (click)="previousPage()"
+          [disabled]="currentPage === 0"
+          class="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100">
+          Poprzednia
+        </button>
+        <button 
+          *ngFor="let page of getPageNumbers()"
+          (click)="goToPage(page)"
+          [class.bg-uknf-primary]="page === currentPage"
+          [class.text-white]="page === currentPage"
+          class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100">
+          {{ page + 1 }}
+        </button>
+        <button 
+          (click)="nextPage()"
+          [disabled]="currentPage >= totalPages - 1"
+          class="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100">
+          Następna
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

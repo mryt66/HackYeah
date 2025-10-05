@@ -1,0 +1,82 @@
+﻿<div class="file-upload-container">
+  <!-- Drag & Drop Area -->
+  <div 
+    class="drag-drop-area"
+    [class.drag-over]="isDragging"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+    (click)="fileInput.click()">
+    
+    <div class="upload-icon">📁</div>
+    <p class="upload-text">Przeciągnij plik tutaj lub kliknij, aby wybrać</p>
+    <p class="upload-hint">
+      Maksymalny rozmiar: {{ maxSizeMB }}MB
+      <span *ngIf="acceptedTypes.length > 0"> | Dozwolone: {{ acceptedTypes.join(', ') }}</span>
+    </p>
+    
+    <input 
+      #fileInput
+      type="file"
+      [multiple]="multiple"
+      [accept]="acceptedTypes.join(',')"
+      (change)="onFileSelected($event)"
+      style="display: none;">
+  </div>
+
+  <!-- Selected Files List -->
+  <div *ngIf="selectedFiles.length > 0" class="selected-files-list">
+    <h4 class="list-title">Wybrane pliki ({{ selectedFiles.length }})</h4>
+    
+    <div *ngFor="let file of selectedFiles; let i = index" class="file-item">
+      <div class="file-info">
+        <span class="file-icon">📄</span>
+        <div class="file-details">
+          <p class="file-name">{{ file.name }}</p>
+          <p class="file-size">{{ formatFileSize(file.size) }}</p>
+        </div>
+      </div>
+      
+      <!-- Progress Bar -->
+      <div *ngIf="file.progress !== undefined" class="progress-container">
+        <div class="progress-bar">
+          <div 
+            class="progress-fill" 
+            [style.width.%]="file.progress"
+            [class.success]="file.progress === 100"
+            [class.error]="file.error">
+          </div>
+        </div>
+        <span class="progress-text">{{ file.progress }}%</span>
+      </div>
+      
+      <!-- Error Message -->
+      <p *ngIf="file.error" class="error-message">{{ file.error }}</p>
+      
+      <!-- Remove Button -->
+      <button 
+        *ngIf="file.progress !== 100 && !file.uploading"
+        (click)="removeFile(i)"
+        class="remove-button"
+        type="button">
+        ❌
+      </button>
+    </div>
+  </div>
+
+  <!-- Upload Button -->
+  <div *ngIf="selectedFiles.length > 0 && !autoUpload" class="upload-actions">
+    <button 
+      (click)="uploadFiles()"
+      [disabled]="uploading"
+      class="btn btn-primary">
+      {{ uploading ? 'Wysyanie...' : 'Wylij pliki' }}
+    </button>
+    <button 
+      (click)="clearAll()"
+      [disabled]="uploading"
+      class="btn btn-secondary">
+      Wyczy wszystko
+    </button>
+  </div>
+</div>

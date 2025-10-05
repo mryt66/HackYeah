@@ -1,0 +1,218 @@
+<!-- Header -->
+<div class="bg-white rounded-lg shadow mb-6">
+  <div class="px-6 py-4 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <h2 class="text-xl font-semibold text-gray-900">Baza wiedzy (FAQ)</h2>
+      <button 
+        *ngIf="isAdmin"
+        (click)="openCreateModal()"
+        class="px-4 py-2 bg-uknf-primary hover:bg-uknf-primary-dark text-white rounded transition-colors">
+        ❓ Dodaj pytanie
+      </button>
+    </div>
+  </div>
+
+  <!-- Wyszukiwanie i filtry -->
+  <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+    <div class="mb-4">
+      <div class="relative">
+        <input 
+          type="text"
+          [(ngModel)]="filter.searchQuery"
+          (ngModelChange)="onSearchChange()"
+          class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-uknf-primary"
+          placeholder="Wpisz pytanie lub słowo kluczowe...">
+        <span class="absolute left-3 top-3 text-gray-400 text-xl">🔍</span>
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <select 
+        [(ngModel)]="filter.category"
+        (ngModelChange)="applyFilters()"
+        class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary">
+        <option value="">Wszystkie kategorie</option>
+        <option value="REPORTING">Sprawozdawczość</option>
+        <option value="ACCESS">Dostęp do systemu</option>
+        <option value="TECHNICAL">Problemy techniczne</option>
+        <option value="LEGAL">Kwestie prawne</option>
+        <option value="DEADLINES">Terminy</option>
+        <option value="GENERAL">Ogólne</option>
+      </select>
+
+      <div class="flex items-center space-x-2">
+        <input 
+          type="text"
+          [(ngModel)]="tagInput"
+          (keyup.enter)="addTag()"
+          class="flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary"
+          placeholder="Dodaj tag...">
+        <button 
+          (click)="addTag()"
+          class="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">
+          +
+        </button>
+      </div>
+
+      <button 
+        (click)="clearFilters()"
+        class="px-4 py-2 bg-white hover:bg-gray-100 border border-gray-300 rounded">
+        Wyczyść
+      </button>
+    </div>
+
+    <!-- Wybrane tagi -->
+    <div *ngIf="selectedTags.length > 0" class="mt-3 flex flex-wrap gap-2">
+      <span *ngFor="let tag of selectedTags" 
+            class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm flex items-center space-x-2">
+        <span>{{ tag }}</span>
+        <button (click)="removeTag(tag)" class="hover:text-blue-900">✕</button>
+      </span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="p-12 text-center">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-uknf-primary mx-auto"></div>
+    <p class="mt-4 text-gray-500">Ładowanie...</p>
+  </div>
+
+  <!-- Popularne pytania (jeśli brak wyszukiwania) -->
+        <div *ngIf="!loading && !filter.searchQuery && popularFaqs.length > 0" class="mb-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+      ⭐ Najczęściej zadawane pytania
+    </h3>
+    <div class="space-y-2">
+      <button *ngFor="let faq of popularFaqs"
+              (click)="viewFaq(faq)"
+              class="w-full text-left px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded transition-colors">
+        <span class="text-blue-600 hover:text-blue-800">{{ faq.question }}</span>
+        <span class="ml-2 text-xs text-gray-500">(👁️ {{ faq.viewCount }})</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Lista FAQ -->
+  <div *ngIf="!loading" class="p-6">
+    <div *ngIf="faqItems.length === 0" class="text-center py-12">
+      <p class="text-gray-500 text-lg">
+                {{ filter.searchQuery ? 'Nie znaleziono pytań pasujących do zapytania' : 'Brak pytań w bazie' }}
+      </p>
+    </div>
+
+    <div *ngIf="faqItems.length > 0" class="space-y-4">
+      <div *ngFor="let faq of faqItems; let i = index" 
+           class="border border-gray-200 rounded-lg overflow-hidden">
+        <!-- Pytanie -->
+        <button 
+          (click)="toggleFaq(i)"
+          class="w-full px-6 py-4 flex items-start justify-between bg-white hover:bg-gray-50 transition-colors text-left">
+          <div class="flex-1 pr-4">
+            <div class="flex items-center space-x-2 mb-2">
+              <span [class]="faqService.getCategoryClass(faq.category)" 
+                    class="px-2 py-1 rounded text-xs font-medium">
+                {{ faqService.getCategoryLabel(faq.category) }}
+              </span>
+              <span *ngFor="let tag of faq.tags" 
+                    class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                #{{ tag }}
+              </span>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900">
+              {{ faq.question }}
+            </h3>
+            <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+              <span>👁️ {{ faq.viewCount }} wyświetleń</span>
+              <span>👍 {{ faq.helpfulCount }} pomocne</span>
+              <span>👎 {{ faq.notHelpfulCount }}</span>
+              <span>� {{ formatDate(faq.lastUpdated) }}</span>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl text-gray-400">
+              {{ expandedFaqs.has(i) ? '▼' : '▶' }}
+            </span>
+            <div *ngIf="isAdmin" class="flex space-x-1" (click)="$event.stopPropagation()">
+              <button 
+                (click)="editFaq(faq)"
+                class="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                title="Edytuj">
+                ✏️
+              </button>
+              <button 
+                (click)="deleteFaq(faq)"
+                class="p-1 text-red-600 hover:bg-red-100 rounded"
+                title="Usuń">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </button>
+
+        <!-- Odpowiedź (rozwijana) -->
+        <div *ngIf="expandedFaqs.has(i)" class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <div class="prose max-w-none">
+            <p class="text-gray-700 whitespace-pre-line">{{ faq.answer }}</p>
+          </div>
+
+          <!-- Feedback -->
+          <div class="mt-4 pt-4 border-t border-gray-300">
+            <p class="text-sm font-medium text-gray-700 mb-2">Czy ta odpowiedź była pomocna?</p>
+            <div class="flex items-center space-x-3">
+              <button 
+                (click)="submitFeedback(faq, true)"
+                class="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded transition-colors">
+                👍 Tak
+              </button>
+              <button 
+                (click)="submitFeedback(faq, false)"
+                class="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-800 rounded transition-colors">
+                👎 Nie
+              </button>
+            </div>
+          </div>
+
+          <!-- Powiązane pytania -->
+          <div *ngIf="faq.relatedFaqIds.length > 0" class="mt-4 pt-4 border-t border-gray-300">
+            <p class="text-sm font-medium text-gray-700 mb-2">Powiązane pytania:</p>
+            <div class="space-y-1">
+              <button *ngFor="let relatedId of faq.relatedFaqIds"
+                      class="block text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                Zobacz pytanie #{{ relatedId }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paginacja -->
+    <div *ngIf="totalPages > 1" class="mt-6 flex items-center justify-between">
+      <p class="text-sm text-gray-600">
+        Strona {{ currentPage + 1 }} z {{ totalPages }} ({{ totalElements }} pytań)
+      </p>
+      <div class="flex space-x-2">
+        <button 
+          (click)="previousPage()"
+          [disabled]="currentPage === 0"
+          class="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100">
+          Poprzednia
+        </button>
+        <button 
+          *ngFor="let page of getPageNumbers()"
+          (click)="goToPage(page)"
+          [class.bg-uknf-primary]="page === currentPage"
+          [class.text-white]="page === currentPage"
+          class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100">
+          {{ page + 1 }}
+        </button>
+        <button 
+          (click)="nextPage()"
+          [disabled]="currentPage >= totalPages - 1"
+          class="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100">
+          Następna
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

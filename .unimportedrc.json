@@ -1,0 +1,21 @@
+{
+  "ignoreUnresolved": [],
+  "ignoreUnused": [
+    "@angular/ssr",
+    "express",
+    "primeicons",
+    "primeng",
+    "tslib"
+  ],
+  "ignoreUnimported": [
+    "C:\\Users\\Marcin\\python\\my-frontend-clean\\src\\app\\accessibility.config.ts",
+    "C:\\Users\\Marcin\\python\\my-frontend-clean\\src\\app\\app.config.server.ts",
+    "C:\\Users\\Marcin\\python\\my-frontend-clean\\src\\app\\app.routes.server.ts",
+    "C:\\Users\\Marcin\\python\\my-frontend-clean\\src\\app\\features\\admin\\admin-dashboard.component.ts",
+    "C:\\Users\\Marcin\\python\\my-frontend-clean\\src\\app\\shared\\components\\confirm-dialog.component.ts",
+    "C:\\Users\\Marcin\\python\\my-frontend-clean\\src\\app\\shared\\components\\file-upload.component.ts",
+    "C:\\Users\\Marcin\\python\\my-frontend-clean\\src\\app\\shared\\has-role.directive.ts",
+    "C:\\Users\\Marcin\\python\\my-frontend-clean\\src\\main.server.ts",
+    "C:\\Users\\Marcin\\python\\my-frontend-clean\\src\\server.ts"
+  ]
+}

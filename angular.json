@@ -51,6 +51,12 @@
               "extractLicenses": false,
               "sourceMap": true
             }
+            "development-browser": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "outputMode": "static"
+            }
           },
           "defaultConfiguration": "production"
         },
@@ -62,6 +68,9 @@
             },
             "development": {
               "buildTarget": "my-frontend-clean:build:development"
+            },
+            "development-browser": {
+              "buildTarget": "my-frontend-clean:build:development-browser"
             }
           },
           "defaultConfiguration": "development"
@@ -86,5 +95,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

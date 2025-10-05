@@ -1,1 +1,117 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* PrimeNG Theme - używamy domyślnego motywu Aura Light Blue */
+@import "primeicons/primeicons.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   UKNF Design System - Kolory i Zmienne
+   ========================================================================== */
+
+:root {
+  /* Kolory UKNF */
+  --uknf-primary: #003d82;        /* Niebieski główny UKNF */
+  --uknf-primary-dark: #002d5f;   /* Ciemniejszy niebieski */
+  --uknf-primary-light: #0052a8;  /* Jaśniejszy niebieski */
+  
+  /* Szarości */
+  --uknf-gray-50: #f9fafb;
+  --uknf-gray-100: #f3f4f6;
+  --uknf-gray-200: #e5e7eb;
+  --uknf-gray-300: #d1d5db;
+  --uknf-gray-400: #9ca3af;
+  --uknf-gray-500: #6b7280;
+  --uknf-gray-600: #4b5563;
+  --uknf-gray-700: #374151;
+  --uknf-gray-800: #1f2937;
+  --uknf-gray-900: #111827;
+  
+  /* Status colors */
+  --uknf-success: #10b981;
+  --uknf-warning: #f59e0b;
+  --uknf-error: #ef4444;
+  --uknf-info: #3b82f6;
+  
+  /* Tła */
+  --uknf-bg-page: #f5f5f5;
+  --uknf-bg-card: #ffffff;
+  --uknf-bg-header: #ffffff;
+  --uknf-bg-sidebar: #ffffff;
+  
+  /* Tekst */
+  --uknf-text-primary: #1f2937;
+  --uknf-text-secondary: #6b7280;
+  --uknf-text-muted: #9ca3af;
+  
+  /* Borders */
+  --uknf-border: #e5e7eb;
+  --uknf-border-dark: #d1d5db;
+  
+  /* Shadows */
+  --uknf-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --uknf-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --uknf-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --uknf-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   Dostępność - WCAG 2.2
+   ========================================================================== */
+
+/* Wysokie kontrasty */
+.high-contrast-mode {
+  --primary-color: #000000;
+  --secondary-color: #ffffff;
+  --text-color: #000000;
+  --background-color: #ffffff;
+  --border-color: #000000;
+}
+
+.high-contrast-mode * {
+  background-color: var(--background-color) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Focus indicators dla nawigacji klawiaturowej */
+*:focus {
+  outline: 3px solid #0066cc;
+  outline-offset: 2px;
+}
+
+.high-contrast-mode *:focus {
+  outline: 3px solid #000000;
+  outline-offset: 2px;
+}
+
+/* Rozmiary czcionek */
+body.font-small {
+  font-size: 14px;
+}
+
+body.font-large {
+  font-size: 18px;
+}
+
+body.font-extra-large {
+  font-size: 20px;
+}
+
+/* Skip to main content link - dostępność klawiatury */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-to-main:focus {
+  top: 0;
+}

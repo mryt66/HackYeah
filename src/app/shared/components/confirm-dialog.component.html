@@ -1,0 +1,40 @@
+<div *ngIf="isVisible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+        <button 
+          *ngIf="showCloseButton"
+          (click)="onCancel()"
+          class="text-gray-400 hover:text-gray-600"
+          type="button">
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="px-6 py-4">
+      <p class="text-gray-700">{{ message }}</p>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+      <button 
+        *ngIf="showCancelButton"
+        (click)="onCancel()"
+        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded transition-colors"
+        type="button">
+        {{ cancelButtonText }}
+      </button>
+      <button 
+        (click)="onConfirm()"
+        [class]="confirmButtonClass"
+        class="px-4 py-2 rounded transition-colors"
+        type="button">
+        {{ confirmButtonText }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,183 @@
+<div class="max-w-3xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+  <!-- Nagłówek -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">
+      {{ isEditMode ? 'Edytuj użytkownika' : 'Nowy użytkownik' }}
+    </h1>
+    <p class="mt-2 text-sm text-gray-600">
+      {{ isEditMode ? 'Aktualizuj dane użytkownika' : 'Utwórz nowe konto użytkownika' }}
+    </p>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-12">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <p class="mt-4 text-gray-600">Ładowanie danych...</p>
+  </div>
+
+  <!-- Formularz -->
+  <div *ngIf="!loading" class="bg-white rounded-lg shadow">
+    <form (ngSubmit)="onSubmit()">
+      <div class="p-6 space-y-6">
+        <!-- Komunikat błędu -->
+        <div *ngIf="error" class="p-4 bg-red-50 border border-red-200 rounded-md">
+          <div class="flex">
+            <svg class="w-5 h-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            <div class="text-sm text-red-700">{{ error }}</div>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+            Email <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            [(ngModel)]="formData.email"
+            (blur)="onFieldBlur('email')"
+            [disabled]="isEditMode"
+            [class.border-red-500]="hasError('email')"
+            [class.border-gray-300]="!hasError('email')"
+            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            placeholder="uzytkownik@example.com">
+          <p *ngIf="hasError('email')" class="mt-1 text-sm text-red-600">{{ getError('email') }}</p>
+          <p *ngIf="isEditMode" class="mt-1 text-xs text-gray-500">Email nie może być zmieniony</p>
+        </div>
+
+        <!-- Imię -->
+        <div>
+          <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">
+            Imię <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            [(ngModel)]="formData.firstName"
+            (blur)="onFieldBlur('firstName')"
+            [class.border-red-500]="hasError('firstName')"
+            [class.border-gray-300]="!hasError('firstName')"
+            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Jan">
+          <p *ngIf="hasError('firstName')" class="mt-1 text-sm text-red-600">{{ getError('firstName') }}</p>
+        </div>
+
+        <!-- Nazwisko -->
+        <div>
+          <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">
+            Nazwisko <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            [(ngModel)]="formData.lastName"
+            (blur)="onFieldBlur('lastName')"
+            [class.border-red-500]="hasError('lastName')"
+            [class.border-gray-300]="!hasError('lastName')"
+            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Kowalski">
+          <p *ngIf="hasError('lastName')" class="mt-1 text-sm text-red-600">{{ getError('lastName') }}</p>
+        </div>
+
+        <!-- Rola -->
+        <div>
+          <label for="role" class="block text-sm font-medium text-gray-700 mb-1">
+            Rola <span class="text-red-500">*</span>
+          </label>
+          <select
+            id="role"
+            name="role"
+            [(ngModel)]="formData.role"
+            (change)="onRoleChange()"
+            (blur)="onFieldBlur('role')"
+            [class.border-red-500]="hasError('role')"
+            [class.border-gray-300]="!hasError('role')"
+            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option *ngFor="let role of userRoles" [ngValue]="role">
+              {{ getRoleLabel(role) }}
+            </option>
+          </select>
+          <p *ngIf="hasError('role')" class="mt-1 text-sm text-red-600">{{ getError('role') }}</p>
+        </div>
+
+        <!-- Podmiot (tylko dla roli SUBJECT) -->
+        <div *ngIf="formData.role === 'SUBJECT'">
+          <label for="subjectId" class="block text-sm font-medium text-gray-700 mb-1">
+            Podmiot <span class="text-red-500">*</span>
+          </label>
+          <select
+            id="subjectId"
+            name="subjectId"
+            [(ngModel)]="formData.subjectId"
+            (blur)="onFieldBlur('subjectId')"
+            [class.border-red-500]="hasError('subjectId')"
+            [class.border-gray-300]="!hasError('subjectId')"
+            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option [ngValue]="undefined">Wybierz podmiot...</option>
+            <option *ngFor="let subject of filteredSubjects" [ngValue]="subject.id">
+              {{ subject.name }} ({{ getSubjectTypeLabel(subject.type) }})
+            </option>
+          </select>
+          <p *ngIf="hasError('subjectId')" class="mt-1 text-sm text-red-600">{{ getError('subjectId') }}</p>
+        </div>
+
+        <!-- Wyślij email aktywacyjny (tylko dla nowego użytkownika) -->
+        <div *ngIf="!isEditMode">
+          <label class="flex items-center">
+            <input
+              type="checkbox"
+              name="sendActivationEmail"
+              [(ngModel)]="formData.sendActivationEmail"
+              class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            <span class="ml-2 text-sm text-gray-700">Wyślij email z linkiem aktywacyjnym</span>
+          </label>
+          <p class="mt-1 text-xs text-gray-500">
+            Jeśli zaznaczone, użytkownik otrzyma email z linkiem do ustawienia hasła. W przeciwnym razie zostanie wygenerowane tymczasowe hasło.
+          </p>
+        </div>
+
+        <!-- Status aktywności (tylko dla edycji) -->
+        <div *ngIf="isEditMode">
+          <label class="flex items-center">
+            <input
+              type="checkbox"
+              name="isActive"
+              [(ngModel)]="formData.isActive"
+              class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            <span class="ml-2 text-sm text-gray-700">Konto aktywne</span>
+          </label>
+          <p class="mt-1 text-xs text-gray-500">
+            Dezaktywacja konta uniemożliwi użytkownikowi logowanie do systemu.
+          </p>
+        </div>
+      </div>
+
+      <!-- Przyciski -->
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3 justify-end">
+        <button
+          type="button"
+          (click)="cancel()"
+          [disabled]="saving"
+          class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+          Anuluj
+        </button>
+        <button
+          type="submit"
+          [disabled]="saving"
+          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+          <svg *ngIf="saving" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          {{ saving ? 'Zapisywanie...' : (isEditMode ? 'Aktualizuj' : 'Utwórz') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

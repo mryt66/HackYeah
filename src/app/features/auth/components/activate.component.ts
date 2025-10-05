@@ -1,0 +1,15 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-activate',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div>
+      <h3 class="text-2xl font-bold text-gray-900 mb-6">Aktywacja konta</h3>
+      <p class="text-gray-600">Aktywacja - wkrótce...</p>
+    </div>
+  `
+})
+export class ActivateComponent {}

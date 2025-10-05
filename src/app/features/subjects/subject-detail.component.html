@@ -1,0 +1,337 @@
+<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+  <!-- Nagłówek z breadcrumbem -->
+  <div class="mb-6">
+    <nav class="flex items-center text-sm text-gray-500 mb-2">
+      <a routerLink="/subjects" class="hover:text-blue-600">Kartoteka podmiotów</a>
+      <span class="mx-2">/</span>
+      <span class="text-gray-900">Szczegóły podmiotu</span>
+    </nav>
+
+    <div class="flex justify-between items-start">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">{{ subject?.name || 'Ładowanie...' }}</h1>
+        <div *ngIf="subject" class="mt-2 flex items-center gap-2">
+          <span [class]="getTypeClass(subject.subjectType) + ' px-3 py-1 rounded-full text-sm font-medium'">
+            {{ getTypeLabel(subject.subjectType) }}
+          </span>
+          <span [class]="getStatusClass(subject.status) + ' px-3 py-1 rounded-full text-sm font-medium'">
+            {{ getStatusLabel(subject.status) }}
+          </span>
+        </div>
+      </div>
+      <button (click)="goBack()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+        ← Powrót do listy
+      </button>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
+    {{ error }}
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-12">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <p class="mt-4 text-gray-600">Ładowanie danych podmiotu...</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && subject" class="bg-white shadow rounded-lg">
+    <!-- Zakładki -->
+    <div class="border-b border-gray-200">
+      <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+        <button
+          (click)="setActiveTab('details')"
+          [class]="activeTab === 'details' 
+            ? 'border-blue-600 text-blue-600' 
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+          Dane podstawowe
+        </button>
+        <button
+          (click)="setActiveTab('history')"
+          [class]="activeTab === 'history' 
+            ? 'border-blue-600 text-blue-600' 
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+          Historia zmian
+          <span class="ml-2 py-0.5 px-2 rounded-full text-xs bg-gray-100 text-gray-600">
+            {{ changeHistory.length }}
+          </span>
+        </button>
+        <button
+          (click)="setActiveTab('users')"
+          [class]="activeTab === 'users' 
+            ? 'border-blue-600 text-blue-600' 
+            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+          Użytkownicy
+          <span class="ml-2 py-0.5 px-2 rounded-full text-xs bg-gray-100 text-gray-600">
+            {{ subjectUsers.length }}
+          </span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Zawartość zakładek -->
+    <div class="p-6">
+      <!-- DANE PODSTAWOWE -->
+      <div *ngIf="activeTab === 'details'">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Lewa kolumna -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Informacje podstawowe</h3>
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Nazwa pełna</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ subject.name }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Typ podmiotu</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ getTypeLabel(subject.subjectType) }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Kategoria</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ getCategoryLabel(subject.category) }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Status</dt>
+                <dd class="mt-1">
+                  <span [class]="getStatusClass(subject.status) + ' px-2 py-1 rounded text-xs font-medium'">
+                    {{ getStatusLabel(subject.status) }}
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">NIP</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ subject.nip }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">REGON</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ subject.regon }}</dd>
+              </div>
+              <div *ngIf="subject.krs">
+                <dt class="text-sm font-medium text-gray-500">KRS</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ subject.krs }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Data rejestracji</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ formatDate(subject.registrationDate) }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Ostatnia modyfikacja</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ formatDate(subject.lastModified) }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Prawa kolumna -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Adres</h3>
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Ulica i numer</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  {{ subject.address.street }} {{ subject.address.buildingNumber }}
+                  <span *ngIf="subject.address.apartmentNumber">/ {{ subject.address.apartmentNumber }}</span>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Kod pocztowy</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ subject.address.postalCode }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Miasto</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ subject.address.city }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Kraj</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ subject.address.country }}</dd>
+              </div>
+            </dl>
+
+            <h3 class="text-lg font-semibold text-gray-900 mt-6 mb-4">Osoba kontaktowa</h3>
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Imię i nazwisko</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ subject.contactPerson.firstName }} {{ subject.contactPerson.lastName }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Stanowisko</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ subject.contactPerson.position }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                <dd class="mt-1 text-sm text-blue-600">
+                  <a [href]="'mailto:' + subject.contactPerson.email" class="hover:underline">{{ subject.contactPerson.email }}</a>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Telefon</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ subject.contactPerson.phone }}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORIA ZMIAN -->
+      <div *ngIf="activeTab === 'history'">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">Historia zmian</h3>
+        </div>
+
+        <div *ngIf="changeHistory.length === 0" class="text-center py-12 text-gray-500">
+          Brak historii zmian dla tego podmiotu.
+        </div>
+
+        <div *ngIf="changeHistory.length > 0" class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Typ zmiany</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pole</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stara wartość</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nowa wartość</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zmienił</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" *ngIf="isUknfEmployee">Akcje</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let change of changeHistory" class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatDate(change.changeDate) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ getChangeTypeLabel(change.changeType) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ change.fieldName }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{{ change.oldValue }}</td>
+                <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate font-medium">{{ change.newValue }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ change.changedBy.name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span [class]="getChangeStatusClass(change.status) + ' px-2 py-1 rounded text-xs font-medium'">
+                    {{ getChangeStatusLabel(change.status) }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm" *ngIf="isUknfEmployee">
+                  <div *ngIf="change.status === 'PENDING'" class="flex gap-2">
+                    <button (click)="openApproveModal(change)" class="text-green-600 hover:text-green-900 font-medium">
+                      Zatwierdź
+                    </button>
+                    <button (click)="openRejectModal(change)" class="text-red-600 hover:text-red-900 font-medium">
+                      Odrzuć
+                    </button>
+                  </div>
+                  <span *ngIf="change.status !== 'PENDING'" class="text-gray-400">—</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- UŻYTKOWNICY -->
+      <div *ngIf="activeTab === 'users'">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">Użytkownicy podmiotu</h3>
+        </div>
+
+        <div *ngIf="subjectUsers.length === 0" class="text-center py-12 text-gray-500">
+          Brak użytkowników przypisanych do tego podmiotu.
+        </div>
+
+        <div *ngIf="subjectUsers.length > 0" class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Imię i nazwisko</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ostatnie logowanie</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let user of subjectUsers" class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {{ user.firstName }} {{ user.lastName }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.email }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <span *ngFor="let role of user.roles" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-1">
+                    {{ role }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span [class]="user.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'" 
+                        class="px-2 py-1 rounded text-xs font-medium">
+                    {{ user.status === 'ACTIVE' ? 'Aktywny' : 'Nieaktywny' }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(user.lastLogin) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal zatwierdzania zmiany -->
+<div *ngIf="showApproveModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Zatwierdź zmianę</h3>
+    <p class="text-sm text-gray-600 mb-6">
+      Czy na pewno chcesz zatwierdzić tę zmianę? Nowa wartość zostanie zapisana w systemie.
+    </p>
+    <div *ngIf="selectedChange" class="mb-6 p-4 bg-gray-50 rounded-md">
+      <dl class="space-y-2">
+        <div>
+          <dt class="text-xs font-medium text-gray-500">Pole</dt>
+          <dd class="text-sm text-gray-900">{{ selectedChange.fieldName }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs font-medium text-gray-500">Stara wartość</dt>
+          <dd class="text-sm text-gray-600">{{ selectedChange.oldValue }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs font-medium text-gray-500">Nowa wartość</dt>
+          <dd class="text-sm text-gray-900 font-medium">{{ selectedChange.newValue }}</dd>
+        </div>
+      </dl>
+    </div>
+    <div class="flex gap-3 justify-end">
+      <button (click)="closeApproveModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+        Anuluj
+      </button>
+      <button (click)="approveChange()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+        Zatwierdź
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal odrzucania zmiany -->
+<div *ngIf="showRejectModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Odrzuć zmianę</h3>
+    <p class="text-sm text-gray-600 mb-4">
+      Podaj powód odrzucenia zmiany. Zostanie on przekazany użytkownikowi, który zgłosił zmianę.
+    </p>
+    <textarea
+      [(ngModel)]="rejectReason"
+      rows="4"
+      placeholder="Powód odrzucenia..."
+      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6">
+    </textarea>
+    <div class="flex gap-3 justify-end">
+      <button (click)="closeRejectModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+        Anuluj
+      </button>
+      <button (click)="rejectChange()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+        Odrzuć
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,223 @@
+<!-- Header -->
+<div class="bg-white rounded-lg shadow mb-6">
+  <div class="px-6 py-4 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <h2 class="text-xl font-semibold text-gray-900">Ogłoszenia UKNF</h2>
+      <button 
+        *ngIf="isAdmin"
+        (click)="openCreateModal()"
+        class="px-4 py-2 bg-uknf-primary hover:bg-uknf-primary-dark text-white rounded transition-colors">
+        📢 Nowe ogłoszenie
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtry -->
+  <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <input 
+        type="text"
+        [(ngModel)]="filter.searchQuery"
+        (ngModelChange)="onSearchChange()"
+        class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary"
+        placeholder="Szukaj...">
+      
+      <select 
+        [(ngModel)]="filter.category"
+        (ngModelChange)="applyFilters()"
+        class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary">
+        <option value="">Wszystkie kategorie</option>
+        <option value="LEGAL">Prawne</option>
+        <option value="OPERATIONAL">Operacyjne</option>
+        <option value="TECHNICAL">Techniczne</option>
+        <option value="DEADLINE">Terminy</option>
+        <option value="TRAINING">Szkolenia</option>
+        <option value="OTHER">Inne</option>
+      </select>
+
+      <select 
+        [(ngModel)]="filter.priority"
+        (ngModelChange)="applyFilters()"
+        class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary">
+        <option value="">Wszystkie priorytety</option>
+        <option value="LOW">Niski</option>
+        <option value="NORMAL">Normalny</option>
+        <option value="HIGH">Wysoki</option>
+        <option value="URGENT">Pilny</option>
+      </select>
+
+      <select 
+        [(ngModel)]="filter.targetAudience"
+        (ngModelChange)="applyFilters()"
+        class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary">
+        <option value="">Wszystkie grupy</option>
+        <option value="ALL">Wszystkie podmioty</option>
+        <option value="BANKS">Banki</option>
+        <option value="INSURANCE">Ubezpieczenia</option>
+        <option value="INVESTMENT_FIRMS">Firmy inwestycyjne</option>
+        <option value="PENSION_FUNDS">Fundusze emerytalne</option>
+      </select>
+
+      <button 
+        (click)="clearFilters()"
+        class="px-4 py-2 bg-white hover:bg-gray-100 border border-gray-300 rounded">
+        Wyczyść
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="p-12 text-center">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-uknf-primary mx-auto"></div>
+    <p class="mt-4 text-gray-500">Ładowanie ogłoszeń...</p>
+  </div>
+
+  <!-- Lista ogłoszeń -->
+  <div *ngIf="!loading" class="p-6">
+    <!-- Przypięte ogłoszenia -->
+    <div *ngIf="pinnedAnnouncements.length > 0" class="mb-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+        📌 Przypięte ogłoszenia
+      </h3>
+      <div class="space-y-4">
+        <div *ngFor="let announcement of pinnedAnnouncements" 
+             class="border-2 border-uknf-primary rounded-lg p-5 bg-blue-50 hover:shadow-lg transition-shadow cursor-pointer"
+             (click)="viewAnnouncement(announcement)">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex-1">
+              <div class="flex items-center space-x-2 mb-2">
+                <span class="text-2xl">📌</span>
+                <h3 class="text-xl font-bold text-gray-900">{{ announcement.title }}</h3>
+              </div>
+              <div class="flex items-center space-x-2 flex-wrap gap-2">
+                <span [class]="announcementsService.getCategoryClass(announcement.category)" 
+                      class="px-2 py-1 rounded text-xs font-medium">
+                  {{ announcementsService.getCategoryLabel(announcement.category) }}
+                </span>
+                <span [class]="announcementsService.getPriorityClass(announcement.priority)" 
+                      class="px-2 py-1 rounded text-xs font-medium">
+                  {{ announcementsService.getPriorityLabel(announcement.priority) }}
+                </span>
+                <span class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-medium">
+                  {{ announcementsService.getTargetAudienceLabel(announcement.targetAudience[0]) }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <p class="text-gray-700 mb-3 line-clamp-2">{{ announcement.content }}</p>
+          <div class="flex items-center justify-between text-sm text-gray-500">
+            <div class="flex items-center space-x-4">
+              <span>👤 {{ announcement.createdBy.name }}</span>
+              <span>📅 {{ formatDate(announcement.publishedAt) }}</span>
+              <span *ngIf="announcement.attachments.length > 0">
+                📎 {{ announcement.attachments.length }} załącznik(ów)
+              </span>
+              <span>👁️ {{ announcement.viewCount }} wyświetleń</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pozostałe ogłoszenia -->
+    <div *ngIf="announcements.length === 0 && pinnedAnnouncements.length === 0" class="text-center py-12">
+      <p class="text-gray-500 text-lg">Brak ogłoszeń do wyświetlenia</p>
+    </div>
+
+    <div *ngIf="announcements.length > 0" class="space-y-4">
+      <h3 *ngIf="pinnedAnnouncements.length > 0" class="text-lg font-semibold text-gray-900 mb-3">
+        Wszystkie ogłoszenia
+      </h3>
+      
+      <div *ngFor="let announcement of announcements" 
+           class="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow cursor-pointer"
+           (click)="viewAnnouncement(announcement)">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ announcement.title }}</h3>
+            <div class="flex items-center space-x-2 flex-wrap gap-2">
+              <span [class]="announcementsService.getCategoryClass(announcement.category)" 
+                    class="px-2 py-1 rounded text-xs font-medium">
+                {{ announcementsService.getCategoryLabel(announcement.category) }}
+              </span>
+              <span [class]="announcementsService.getPriorityClass(announcement.priority)" 
+                    class="px-2 py-1 rounded text-xs font-medium">
+                {{ announcementsService.getPriorityLabel(announcement.priority) }}
+              </span>
+              <span [class]="announcementsService.getStatusClass(announcement.status)" 
+                    class="px-2 py-1 rounded text-xs font-medium">
+                {{ announcementsService.getStatusLabel(announcement.status) }}
+              </span>
+              <span class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-medium">
+                {{ announcementsService.getTargetAudienceLabel(announcement.targetAudience[0]) }}
+              </span>
+              <span *ngIf="announcement.expiresAt" class="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs">
+                ⏰ Wygasa: {{ formatDate(announcement.expiresAt) }}
+              </span>
+            </div>
+          </div>
+          <div *ngIf="isAdmin" class="flex space-x-2 ml-4">
+            <button 
+              (click)="togglePin(announcement, $event)"
+              class="p-2 text-gray-600 hover:bg-gray-100 rounded"
+              [title]="announcement.isPinned ? 'Odepnij' : 'Przypnij'">
+              {{ announcement.isPinned ? '📌' : '📍' }}
+            </button>
+            <button 
+              (click)="editAnnouncement(announcement, $event)"
+              class="p-2 text-blue-600 hover:bg-blue-100 rounded"
+              title="Edytuj">
+              ✏️
+            </button>
+            <button 
+              (click)="deleteAnnouncement(announcement, $event)"
+              class="p-2 text-red-600 hover:bg-red-100 rounded"
+              title="Usuń">
+              🗑️
+            </button>
+          </div>
+        </div>
+        <p class="text-gray-700 mb-3 line-clamp-3">{{ announcement.content }}</p>
+        <div class="flex items-center justify-between text-sm text-gray-500">
+          <div class="flex items-center space-x-4">
+            <span>👤 {{ announcement.createdBy.name }}</span>
+            <span>📅 {{ formatDate(announcement.publishedAt) }}</span>
+            <span *ngIf="announcement.attachments.length > 0">
+              📎 {{ announcement.attachments.length }}
+            </span>
+            <span>👁️ {{ announcement.viewCount }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paginacja -->
+    <div *ngIf="totalPages > 1" class="mt-6 flex items-center justify-between">
+      <p class="text-sm text-gray-600">
+        Strona {{ currentPage + 1 }} z {{ totalPages }} ({{ totalElements }} ogłoszeń)
+      </p>
+      <div class="flex space-x-2">
+        <button 
+          (click)="previousPage()"
+          [disabled]="currentPage === 0"
+          class="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100">
+          Poprzednia
+        </button>
+        <button 
+          *ngFor="let page of getPageNumbers()"
+          (click)="goToPage(page)"
+          [class.bg-uknf-primary]="page === currentPage"
+          [class.text-white]="page === currentPage"
+          class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100">
+          {{ page + 1 }}
+        </button>
+        <button 
+          (click)="nextPage()"
+          [disabled]="currentPage >= totalPages - 1"
+          class="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100">
+          Następna
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

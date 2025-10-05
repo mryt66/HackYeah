@@ -1,0 +1,202 @@
+<app-breadcrumbs [crumbs]="[
+  { label: 'System', link: ['/dashboard'] },
+  { label: 'Kartoteka Podmiotów' }
+]" />
+<div class="bg-white rounded-lg shadow">
+  <!-- Header -->
+  <div class="px-6 py-4 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-gray-900">Kartoteka Podmiotów</h2>
+      
+      <button 
+        (click)="showFilters = !showFilters"
+        [class.bg-uknf-primary]="showFilters"
+        [class.text-white]="showFilters"
+        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors">
+        {{ showFilters ? 'Ukryj filtry' : 'Pokaż filtry' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Panel filtrów -->
+  <div *ngIf="showFilters" class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <input 
+        type="text"
+        [(ngModel)]="filter.searchQuery"
+        (ngModelChange)="onSearchChange()"
+        class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary"
+        placeholder="Szukaj (nazwa, NIP, REGON)...">
+      
+      <select 
+        [(ngModel)]="filter.subjectType"
+        (ngModelChange)="applyFilters()"
+        class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary">
+        <option value="">Wszystkie typy</option>
+        <option value="BANK">Banki</option>
+        <option value="INSURANCE">Ubezpieczenia</option>
+        <option value="INVESTMENT">Inwestycje</option>
+        <option value="COOPERATIVE">SKOK</option>
+        <option value="PENSION">Emerytalne</option>
+        <option value="OTHER">Inne</option>
+      </select>
+
+      <select 
+        [(ngModel)]="filter.status"
+        (ngModelChange)="applyFilters()"
+        class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary">
+        <option value="">Wszystkie statusy</option>
+        <option value="ACTIVE">Aktywny</option>
+        <option value="SUSPENDED">Zawieszony</option>
+        <option value="LIQUIDATION">W likwidacji</option>
+        <option value="BANKRUPTCY">Upadłość</option>
+      </select>
+
+      <input 
+        type="text"
+        [(ngModel)]="filter.city"
+        (ngModelChange)="onSearchChange()"
+        class="px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-uknf-primary"
+        placeholder="Miasto...">
+    </div>
+
+    <div class="mt-4 flex items-center justify-between">
+      <label class="flex items-center cursor-pointer">
+        <input 
+          type="checkbox" 
+          [(ngModel)]="filter.mySubjectsOnly"
+          (ngModelChange)="applyFilters()"
+          class="h-4 w-4 text-uknf-primary rounded">
+        <span class="ml-2 text-sm text-gray-700">Tylko moje podmioty</span>
+      </label>
+
+      <button 
+        (click)="clearFilters()"
+        class="text-sm text-uknf-primary hover:text-uknf-primary-dark font-medium">
+        Wyczyść filtry
+      </button>
+    </div>
+  </div>
+
+  <!-- Statystyki -->
+  <div class="px-6 py-3 bg-blue-50 border-b border-blue-100">
+    <div class="flex items-center space-x-6 text-sm">
+      <div>
+        <span class="text-gray-600">Wszystkie podmioty:</span>
+        <span class="ml-2 font-semibold text-gray-900">{{ totalElements }}</span>
+      </div>
+      <div>
+        <span class="text-gray-600">Strona:</span>
+        <span class="ml-2 font-semibold text-gray-900">{{ currentPage + 1 }} z {{ totalPages || 1 }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-12">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-uknf-primary"></div>
+    <p class="mt-4 text-gray-600">Ładowanie...</p>
+  </div>
+
+  <!-- Lista podmiotów -->
+  <div *ngIf="!loading" class="divide-y divide-gray-200">
+    <div *ngIf="subjects.length === 0" class="text-center py-12 text-gray-500">
+      <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+      </svg>
+      <p class="text-lg font-medium">Brak podmiotów</p>
+    </div>
+
+    <div 
+      *ngFor="let subject of subjects" 
+      (click)="viewSubject(subject)"
+      class="px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors">
+      <div class="flex justify-between">
+        <div class="flex-1">
+          <div class="flex items-center space-x-3 mb-2">
+            <h3 class="text-base font-semibold text-gray-900">{{ subject.name }}</h3>
+            
+            <span 
+              [class]="subjectsService.getTypeClass(subject.subjectType)"
+              class="px-2 py-1 text-xs font-medium rounded">
+              {{ subjectsService.getTypeLabel(subject.subjectType) }}
+            </span>
+            
+            <span 
+              [class]="subjectsService.getStatusClass(subject.status)"
+              class="px-2 py-1 text-xs font-medium rounded">
+              {{ subjectsService.getStatusLabel(subject.status) }}
+            </span>
+          </div>
+
+          <div class="text-sm text-gray-600 space-y-1">
+            <div class="flex items-center space-x-4">
+              <span>🏢 {{ subjectsService.getCategoryLabel(subject.category) }}</span>
+              <span>🆔 NIP: {{ subject.nip }}</span>
+              <span *ngIf="subject.krs">📋 KRS: {{ subject.krs }}</span>
+            </div>
+            <div class="flex items-center space-x-4">
+              <span>📍 {{ subject.address.city }}, {{ subject.address.street }} {{ subject.address.buildingNumber }}</span>
+              <span>👤 {{ subject.contactPerson.firstName }} {{ subject.contactPerson.lastName }}</span>
+            </div>
+            <div class="flex items-center space-x-4 text-xs text-gray-500">
+              <span>📧 {{ subject.contactPerson.email }}</span>
+              <span>📞 {{ subject.contactPerson.phone }}</span>
+              <span>📅 Ostatnia modyfikacja: {{ formatDate(subject.lastModified) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-end space-y-2 ml-4">
+          <button 
+            (click)="viewSubject(subject); $event.stopPropagation()"
+            class="px-3 py-1 bg-uknf-primary hover:bg-uknf-primary-dark text-white text-sm rounded transition-colors"
+            title="Szczegóły">
+            Szczegóły
+          </button>
+          <button 
+            *ngIf="!isUknfEmployee"
+            (click)="requestChange(subject); $event.stopPropagation()"
+            class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded transition-colors"
+            title="Zgłoś zmianę">
+            Zgłoś zmianę
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paginacja -->
+  <div *ngIf="totalPages > 1" class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+    <div class="flex items-center justify-between">
+      <p class="text-sm text-gray-600">
+        Wyświetlanie {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalElements) }} z {{ totalElements }}
+      </p>
+      <div class="flex space-x-2">
+        <button 
+          (click)="previousPage()"
+          [disabled]="currentPage === 0"
+          class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+          Poprzednia
+        </button>
+        
+        <button 
+          *ngFor="let page of getPageNumbers()"
+          (click)="goToPage(page)"
+          [class.bg-uknf-primary]="page === currentPage"
+          [class.text-white]="page === currentPage"
+          [class.bg-white]="page !== currentPage"
+          class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">
+          {{ page + 1 }}
+        </button>
+        
+        <button 
+          (click)="nextPage()"
+          [disabled]="currentPage >= totalPages - 1"
+          class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+          Następna
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
